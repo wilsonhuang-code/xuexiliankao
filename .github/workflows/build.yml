@@ -37,16 +37,23 @@ jobs:
       id: setup-android
       uses: android-actions/setup-android@v3
 
-    - name: Accept Android SDK licenses & install build-tools
+    - name: Accept Android SDK licenses & install build-tools & NDK
       run: |
         SDK_ROOT=${{ steps.setup-android.outputs.sdk-root }}
         # Accept all licenses (retry to ensure all are accepted)
         for i in 1 2 3; do
           yes | $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses --sdk_root=$SDK_ROOT > /dev/null 2>&1 || true
         done
-        # Explicitly install build-tools (buildozer needs aidl from this)
-        yes | $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "build-tools;34.0.0" --sdk_root=$SDK_ROOT 2>&1 || true
-        echo "Installed packages:"
+        # Install NDK (buildozer MUST have this!)
+        echo "Installing NDK..."
+        yes | $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "ndk;26.2.11394342" --sdk_root=$SDK_ROOT 2>&1
+        # Install build-tools (buildozer needs aidl from this)
+        echo "Installing build-tools..."
+        yes | $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "build-tools;34.0.0" --sdk_root=$SDK_ROOT 2>&1
+        echo "=== Installed packages ==="
+        echo "NDK:"
+        ls $SDK_ROOT/ndk/ 2>/dev/null || echo "No NDK installed!"
+        echo "Build-tools:"
         ls $SDK_ROOT/build-tools/ 2>/dev/null || echo "No build-tools installed"
 
     - name: Build APK with Buildozer
@@ -54,7 +61,12 @@ jobs:
       run: |
         export ANDROID_HOME=${{ steps.setup-android.outputs.sdk-root }}
         export ANDROID_SDK_ROOT=${{ steps.setup-android.outputs.sdk-root }}
-        export ANDROID_NDK_HOME=${{ steps.setup-android.outputs.sdk-root }}/ndk/$(ls ${{ steps.setup-android.outputs.sdk-root }}/ndk/ | head -1)
+        export ANDROID_NDK_HOME=${{ steps.setup-android.outputs.sdk-root }}/ndk/$(ls ${{ steps.setup-android.outputs.sdk-root }}/ndk/ 2>/dev/null | head -1 || echo "")
+        # Fallback: if NDK dir is empty, try common path
+        if [ -z "$(ls ${{ steps.setup-android.outputs.sdk-root }}/ndk/ 2>/dev/null)" ]; then
+          echo "WARNING: NDK not in sdk-root/ndk/, trying to find it..."
+          export ANDROID_NDK_HOME=${{ steps.setup-android.outputs.sdk-root }}/ndk/26.2.11394342
+        fi
         echo "ANDROID_HOME=$ANDROID_HOME"
         echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
         echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
