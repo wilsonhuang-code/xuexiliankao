@@ -8,87 +8,47 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container: ubuntu:22.04
 
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-
     - name: Install system dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y \
+        apt-get update
+        apt-get install -y \
+          python3 python3-pip python3-venv \
           autoconf libtool pkg-config zlib1g-dev \
           libncurses5-dev libncursesw5-dev cmake \
           libffi-dev libssl-dev libltdl-dev \
-          gcc g++ make patch ccache
+          gcc g++ make patch ccache git \
+          openjdk-17-jdk wget unzip
 
-    - name: Install Python dependencies
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
       run: |
-        pip install --upgrade pip setuptools wheel
-        pip install buildozer "cython>=0.29,<0.30"
+        python3 --version
+        pip3 install --upgrade pip setuptools wheel
+        pip3 install buildozer "cython>=0.29,<0.30"
 
-    # CRITICAL: Remove pre-installed Android SDK from GitHub Runner
-    # Buildozer detects /usr/local/lib/android/sdk/ and tries to use it,
-    # but the path structure is wrong (tools/bin vs cmdline-tools)
-    - name: Remove pre-installed Android SDK from Runner
-      run: |
-        echo "Removing pre-installed SDK to force Buildozer to manage its own..."
-        sudo rm -rf /usr/local/lib/android/sdk/
-        sudo rm -rf /usr/local/lib/android/cmdline-tools/
-        # Also unset any Android env vars
-        unset ANDROID_HOME || true
-        unset ANDROID_SDK_ROOT || true
-        echo "ANDROID_HOME=$ANDROID_HOME"
-        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-
-    # Buildozer will download its own SDK to ~/.buildozer/android/platform/
-
-    - name: Build APK with Buildozer (let it manage SDK)
+    - name: Build APK with Buildozer
       timeout-minutes: 90
       run: |
-        # Clean previous build
-        rm -rf .buildozer/android/platform/build/
-        rm -rf .buildozer/android/platform/android-sdk/
-        rm -rf .buildozer/android/platform/android-ndk/
-        # Build with verbose output (Buildozer will download its own SDK)
+        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+        # Let Buildozer download its own SDK/NDK
+        rm -rf .buildozer/android/platform/
         buildozer android debug 2>&1 | tee buildozer_log.txt
-        BUILD_EXIT=${PIPESTATUS[0]}
-        echo "Buildozer exit code: $BUILD_EXIT"
-        exit $BUILD_EXIT
-
-    - name: Check build result
-      if: always()
-      run: |
-        echo "=== Buildozer Log (last 300 lines) ==="
-        tail -300 buildozer_log.txt 2>/dev/null || echo "No log file"
-        echo ""
-        echo "=== Searching for APK files ==="
-        find . -name "*.apk" 2>/dev/null || echo "No apk found"
-        ls -la bin/ 2>/dev/null || echo "No bin directory"
+        exit ${PIPESTATUS[0]}
 
     - name: Upload APK
       if: success()
       uses: actions/upload-artifact@v4
       with:
         name: xuexiliankao-apk
-        path: |
-          bin/*.apk
-          **/*.apk
+        path: bin/*.apk
 
-    - name: Upload build log
+    - name: Upload log
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: buildozer-log
-        path: |
-          buildozer_log.txt
+        path: buildozer_log.txt
