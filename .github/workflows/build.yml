@@ -30,7 +30,7 @@ jobs:
     - name: Install Python dependencies
       run: |
         pip install --upgrade pip setuptools wheel
-        pip install buildozer cython==0.29.38
+        pip install buildozer "cython>=0.29,<0.30"
 
     - name: Set up Android SDK / NDK
       uses: android-actions/setup-android@v3
