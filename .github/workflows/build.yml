@@ -8,34 +8,29 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ubuntu:22.04
+    container: kivy/buildozer:latest
 
     steps:
-    - name: Install system dependencies
-      run: |
-        apt-get update
-        apt-get install -y \
-          python3 python3-pip python3-venv \
-          autoconf libtool pkg-config zlib1g-dev \
-          libncurses5-dev libncursesw5-dev cmake \
-          libffi-dev libssl-dev libltdl-dev \
-          gcc g++ make patch ccache git \
-          openjdk-17-jdk wget unzip
-
     - uses: actions/checkout@v4
 
-    - name: Set up Python
+    - name: Verify environment
       run: |
+        echo "=== Python version ==="
         python3 --version
-        pip3 install --upgrade pip setuptools wheel
-        pip3 install buildozer "cython>=0.29,<0.30"
+        echo "=== Buildozer version ==="
+        buildozer --version || echo "buildozer not in PATH"
+        echo "=== ANDROID_HOME ==="
+        echo "ANDROID_HOME=[$ANDROID_HOME]"
+        echo "=== Check for pre-installed SDK ==="
+        ls /usr/local/lib/android/ 2>/dev/null || echo "No pre-installed SDK"
 
-    - name: Build APK with Buildozer
+    - name: Build APK
       timeout-minutes: 90
       run: |
-        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-        # Let Buildozer download its own SDK/NDK
-        rm -rf .buildozer/android/platform/
+        cd $GITHUB_WORKSPACE
+        # Clean any previous build
+        rm -rf .buildozer/android/platform/build/
+        # Build
         buildozer android debug 2>&1 | tee buildozer_log.txt
         exit ${PIPESTATUS[0]}
 
