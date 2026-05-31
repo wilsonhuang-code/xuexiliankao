@@ -12,11 +12,18 @@ import random
 import re as _re
 from datetime import datetime, timedelta, date
 
-# ====== 中文字体注册（必须在kivy import之前） ======
+# ====== 中文字体注册（必须在kvy import之前） ======
 from kivy.core.text import LabelBase
-_FONT_DIR = os.path.join(os.environ.get('WINDIR', 'C:\\Windows'), 'Fonts')
-_CN_FONT = os.path.join(_FONT_DIR, 'msyh.ttc')
-_CN_FONT_BOLD = os.path.join(_FONT_DIR, 'msyhbd.ttc')
+# 跨平台字体路径：Windows用系统字体，Android/Linux用内置字体
+import platform
+if platform.system() == 'Windows':
+    _FONT_DIR = os.path.join(os.environ.get('WINDIR', 'C:\\Windows'), 'Fonts')
+    _CN_FONT = os.path.join(_FONT_DIR, 'msyh.ttc')
+    _CN_FONT_BOLD = os.path.join(_FONT_DIR, 'msyhbd.ttc')
+else:
+    # Android/Linux: 使用Noto Sans CJK（buildozer会自动包含）或系统默认
+    _CN_FONT = '/system/fonts/NotoSansCJK-Regular.ttc'
+    _CN_FONT_BOLD = '/system/fonts/NotoSansCJK-Bold.ttc'
 if os.path.exists(_CN_FONT):
     LabelBase.register(name='Roboto', fn_regular=_CN_FONT,
                        fn_bold=_CN_FONT_BOLD if os.path.exists(_CN_FONT_BOLD) else _CN_FONT)

@@ -50,6 +50,7 @@ jobs:
         ls $SDK_ROOT/build-tools/ 2>/dev/null || echo "No build-tools installed"
 
     - name: Build APK with Buildozer
+      timeout-minutes: 60
       run: |
         export ANDROID_HOME=${{ steps.setup-android.outputs.sdk-root }}
         export ANDROID_SDK_ROOT=${{ steps.setup-android.outputs.sdk-root }}
@@ -57,10 +58,27 @@ jobs:
         echo "ANDROID_HOME=$ANDROID_HOME"
         echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
         echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
-        # Tell buildozer to use the already-installed build-tools version
-        export BUILDTOOLS_VERSION=34.0.0
-        ls -la $ANDROID_NDK_HOME/ 2>/dev/null || echo "NDK not found at default path"
+        # Verify NDK exists
+        if [ ! -d "$ANDROID_NDK_HOME" ]; then
+          echo "ERROR: NDK not found at $ANDROID_NDK_HOME"
+          ls ${{ steps.setup-android.outputs.sdk-root }}/ndk/
+          exit 1
+        fi
+        # Verify build-tools
+        if [ ! -d "$ANDROID_HOME/build-tools" ] || [ -z "$(ls $ANDROID_HOME/build-tools/ 2>/dev/null)" ]; then
+          echo "ERROR: build-tools not found"
+          ls $ANDROID_HOME/
+          exit 1
+        fi
+        echo "Build tools available:"
+        ls $ANDROID_HOME/build-tools/
+        # Clean previous build
+        rm -rf .buildozer/bin/
+        # Build
         buildozer android debug 2>&1 | tee buildozer_log.txt
+        BUILD_EXIT=${PIPESTATUS[0]}
+        echo "Buildozer exit code: $BUILD_EXIT"
+        exit $BUILD_EXIT
 
     - name: Check build result
       if: always()
@@ -81,8 +99,8 @@ jobs:
           bin/*.apk
           **/*.apk
 
-    - name: Upload build log on failure
-      if: failure()
+    - name: Upload build log
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: buildozer-log
