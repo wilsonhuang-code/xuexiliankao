@@ -17,6 +17,12 @@ jobs:
       with:
         python-version: '3.11'
 
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
     - name: Install system dependencies
       run: |
         sudo apt-get update
@@ -24,68 +30,62 @@ jobs:
           autoconf libtool pkg-config zlib1g-dev \
           libncurses5-dev libncursesw5-dev cmake \
           libffi-dev libssl-dev libltdl-dev \
-          openjdk-17-jdk-headless \
-          gcc g++ make patch \
-          ccache
+          gcc g++ make patch ccache
 
     - name: Install Python dependencies
       run: |
         pip install --upgrade pip setuptools wheel
         pip install buildozer "cython>=0.29,<0.30"
 
-    - name: Set up Android SDK / NDK
-      id: setup-android
-      uses: android-actions/setup-android@v3
+    # Use v4 (latest) - it auto-accepts licenses and installs tools/platform-tools
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v4
+      with:
+        accept-android-sdk-licenses: true
+        log-accepted-android-sdk-licenses: false
 
-    - name: Accept Android SDK licenses & install build-tools & NDK
+    - name: Install NDK, build-tools, platforms
       run: |
-        SDK_ROOT=${{ steps.setup-android.outputs.sdk-root }}
-        # Accept all licenses (retry to ensure all are accepted)
-        for i in 1 2 3; do
-          yes | $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses --sdk_root=$SDK_ROOT > /dev/null 2>&1 || true
-        done
-        # Install NDK (buildozer MUST have this!)
-        echo "Installing NDK..."
-        yes | $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "ndk;26.2.11394342" --sdk_root=$SDK_ROOT 2>&1
-        # Install build-tools (buildozer needs aidl from this)
-        echo "Installing build-tools..."
-        yes | $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "build-tools;34.0.0" --sdk_root=$SDK_ROOT 2>&1
-        echo "=== Installed packages ==="
+        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+        # Show what's already installed
+        echo "=== SDK contents ==="
+        ls $ANDROID_SDK_ROOT/
+        echo "=== cmdline-tools ==="
+        find $ANDROID_SDK_ROOT/cmdline-tools -name "sdkmanager" -type f 2>/dev/null
+        # Find sdkmanager (v4 puts it in versioned dir like cmdline-tools/16.0/bin/)
+        SDKMANAGER=$(find $ANDROID_SDK_ROOT/cmdline-tools -name "sdkmanager" -type f 2>/dev/null | head -1)
+        if [ -z "$SDKMANAGER" ]; then
+          echo "ERROR: sdkmanager not found anywhere"
+          find $ANDROID_SDK_ROOT -type f -name "sdkmanager" 2>/dev/null || true
+          exit 1
+        fi
+        echo "Found sdkmanager at: $SDKMANAGER"
+        # Install NDK + build-tools + platform
+        yes | $SDKMANAGER "ndk;26.2.11394342" "build-tools;34.0.0" "platforms;android-34" 2>&1
+        echo "=== Verify installations ==="
         echo "NDK:"
-        ls $SDK_ROOT/ndk/ 2>/dev/null || echo "No NDK installed!"
+        ls $ANDROID_SDK_ROOT/ndk/ 2>/dev/null || echo "NOT FOUND"
         echo "Build-tools:"
-        ls $SDK_ROOT/build-tools/ 2>/dev/null || echo "No build-tools installed"
+        ls $ANDROID_SDK_ROOT/build-tools/ 2>/dev/null || echo "NOT FOUND"
+        echo "Platforms:"
+        ls $ANDROID_SDK_ROOT/platforms/ 2>/dev/null || echo "NOT FOUND"
 
     - name: Build APK with Buildozer
       timeout-minutes: 60
       run: |
-        export ANDROID_HOME=${{ steps.setup-android.outputs.sdk-root }}
-        export ANDROID_SDK_ROOT=${{ steps.setup-android.outputs.sdk-root }}
-        export ANDROID_NDK_HOME=${{ steps.setup-android.outputs.sdk-root }}/ndk/$(ls ${{ steps.setup-android.outputs.sdk-root }}/ndk/ 2>/dev/null | head -1 || echo "")
-        # Fallback: if NDK dir is empty, try common path
-        if [ -z "$(ls ${{ steps.setup-android.outputs.sdk-root }}/ndk/ 2>/dev/null)" ]; then
-          echo "WARNING: NDK not in sdk-root/ndk/, trying to find it..."
-          export ANDROID_NDK_HOME=${{ steps.setup-android.outputs.sdk-root }}/ndk/26.2.11394342
+        export ANDROID_HOME=$ANDROID_SDK_ROOT
+        # Find NDK
+        NDK_DIR=$(ls -d $ANDROID_SDK_ROOT/ndk/*/ 2>/dev/null | head -1 | tr -d '/')
+        if [ -z "$NDK_DIR" ]; then
+          echo "ERROR: No NDK directory found"
+          ls $ANDROID_SDK_ROOT/ndk/ 2>/dev/null || echo "ndk dir empty or missing"
+          exit 1
         fi
+        export ANDROID_NDK_HOME=$NDK_DIR
         echo "ANDROID_HOME=$ANDROID_HOME"
-        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
         echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
-        # Verify NDK exists
-        if [ ! -d "$ANDROID_NDK_HOME" ]; then
-          echo "ERROR: NDK not found at $ANDROID_NDK_HOME"
-          ls ${{ steps.setup-android.outputs.sdk-root }}/ndk/
-          exit 1
-        fi
-        # Verify build-tools
-        if [ ! -d "$ANDROID_HOME/build-tools" ] || [ -z "$(ls $ANDROID_HOME/build-tools/ 2>/dev/null)" ]; then
-          echo "ERROR: build-tools not found"
-          ls $ANDROID_HOME/
-          exit 1
-        fi
-        echo "Build tools available:"
-        ls $ANDROID_HOME/build-tools/
         # Clean previous build
-        rm -rf .buildozer/bin/
+        rm -rf .buildozer/android/platform/build/
         # Build
         buildozer android debug 2>&1 | tee buildozer_log.txt
         BUILD_EXIT=${PIPESTATUS[0]}
@@ -95,11 +95,11 @@ jobs:
     - name: Check build result
       if: always()
       run: |
-        echo "=== Buildozer Log (last 150 lines) ==="
-        tail -150 buildozer_log.txt 2>/dev/null || echo "No log file"
+        echo "=== Buildozer Log (last 200 lines) ==="
+        tail -200 buildozer_log.txt 2>/dev/null || echo "No log file"
         echo ""
-        echo "=== bin directory ==="
-        find . -name "*.apk" 2>/dev/null || echo "No apk files found anywhere"
+        echo "=== Searching for APK files ==="
+        find . -name "*.apk" 2>/dev/null || echo "No apk found"
         ls -la bin/ 2>/dev/null || echo "No bin directory"
 
     - name: Upload APK
@@ -118,4 +118,3 @@ jobs:
         name: buildozer-log
         path: |
           buildozer_log.txt
-          .buildozer/
