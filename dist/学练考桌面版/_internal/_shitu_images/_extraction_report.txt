@@ -1,0 +1,79 @@
+湘教版地理填充图 - 图片提取报告
+============================================================
+
+源文件: F:\(最完整)湘教版地理填充图题(七、八年级总复习).docx
+提取时间: 2026-05-02 16:54:40
+总图片数: 70
+
+序号 | 原始文件名 | 新文件名 | 大小(字节)
+------------------------------------------------------------
+   1 | word/media/image1.jpeg                   | xj_01.jpg    |     49,245
+   2 | word/media/image10.jpeg                  | xj_02.jpg    |  1,638,704
+   3 | word/media/image11.jpeg                  | xj_03.jpg    |     27,699
+   4 | word/media/image12.png                   | xj_04.png    |     72,416
+   5 | word/media/image13.png                   | xj_05.png    |    103,637
+   6 | word/media/image14.png                   | xj_06.png    |     21,335
+   7 | word/media/image15.jpeg                  | xj_07.jpg    |    230,071
+   8 | word/media/image16.png                   | xj_08.png    |     36,220
+   9 | word/media/image17.png                   | xj_09.png    |      3,378
+  10 | word/media/image18.png                   | xj_10.png    |      3,810
+  11 | word/media/image19.bmp                   | xj_11.bmp    |        146
+  12 | word/media/image2.emf                    | xj_12.emf    |     29,216
+  13 | word/media/image20.jpeg                  | xj_13.jpg    |    164,325
+  14 | word/media/image21.png                   | xj_14.png    |      3,802
+  15 | word/media/image22.jpeg                  | xj_15.jpg    |    188,320
+  16 | word/media/image23.png                   | xj_16.png    |      9,070
+  17 | word/media/image24.jpeg                  | xj_17.jpg    |     82,490
+  18 | word/media/image25.jpeg                  | xj_18.jpg    |     62,303
+  19 | word/media/image26.jpeg                  | xj_19.jpg    |     24,467
+  20 | word/media/image27.jpeg                  | xj_20.jpg    |     49,912
+  21 | word/media/image28.jpeg                  | xj_21.jpg    |     38,112
+  22 | word/media/image29.png                   | xj_22.png    |     11,787
+  23 | word/media/image3.jpeg                   | xj_23.jpg    |     27,180
+  24 | word/media/image30.png                   | xj_24.png    |     47,508
+  25 | word/media/image31.png                   | xj_25.png    |     19,461
+  26 | word/media/image32.jpeg                  | xj_26.jpg    |     14,989
+  27 | word/media/image33.png                   | xj_27.png    |     48,029
+  28 | word/media/image34.jpeg                  | xj_28.jpg    |     13,934
+  29 | word/media/image35.jpeg                  | xj_29.jpg    |     28,796
+  30 | word/media/image36.jpeg                  | xj_30.jpg    |     19,497
+  31 | word/media/image37.jpeg                  | xj_31.jpg    |     40,139
+  32 | word/media/image38.jpeg                  | xj_32.jpg    |     36,640
+  33 | word/media/image39.jpeg                  | xj_33.jpg    |     43,007
+  34 | word/media/image4.jpeg                   | xj_34.jpg    |     17,974
+  35 | word/media/image40.jpeg                  | xj_35.jpg    |     32,538
+  36 | word/media/image41.jpeg                  | xj_36.jpg    |     20,385
+  37 | word/media/image42.jpeg                  | xj_37.jpg    |    675,347
+  38 | word/media/image43.jpeg                  | xj_38.jpg    |     22,765
+  39 | word/media/image44.png                   | xj_39.png    |     51,561
+  40 | word/media/image45.png                   | xj_40.png    |     17,455
+  41 | word/media/image46.png                   | xj_41.png    |    106,139
+  42 | word/media/image47.jpeg                  | xj_42.jpg    |     14,361
+  43 | word/media/image48.png                   | xj_43.png    |     30,720
+  44 | word/media/image49.jpeg                  | xj_44.jpg    |     26,997
+  45 | word/media/image5.emf                    | xj_45.emf    |    288,776
+  46 | word/media/image50.jpeg                  | xj_46.jpg    |      9,452
+  47 | word/media/image51.png                   | xj_47.png    |      9,274
+  48 | word/media/image52.jpeg                  | xj_48.jpg    |     49,676
+  49 | word/media/image53.png                   | xj_49.png    |     14,544
+  50 | word/media/image54.jpeg                  | xj_50.jpg    |     21,113
+  51 | word/media/image55.png                   | xj_51.png    |     28,533
+  52 | word/media/image56.jpeg                  | xj_52.jpg    |     47,524
+  53 | word/media/image57.jpeg                  | xj_53.jpg    |     52,023
+  54 | word/media/image58.png                   | xj_54.png    |    118,377
+  55 | word/media/image59.png                   | xj_55.png    |     84,760
+  56 | word/media/image6.emf                    | xj_56.emf    |    426,148
+  57 | word/media/image60.png                   | xj_57.png    |     24,745
+  58 | word/media/image61.jpeg                  | xj_58.jpg    |     48,258
+  59 | word/media/image62.jpeg                  | xj_59.jpg    |     80,198
+  60 | word/media/image63.jpeg                  | xj_60.jpg    |     50,254
+  61 | word/media/image64.png                   | xj_61.png    |     33,522
+  62 | word/media/image65.jpeg                  | xj_62.jpg    |     21,419
+  63 | word/media/image66.png                   | xj_63.png    |    222,113
+  64 | word/media/image67.png                   | xj_64.png    |     37,571
+  65 | word/media/image68.jpeg                  | xj_65.jpg    |     62,188
+  66 | word/media/image69.jpeg                  | xj_66.jpg    |     84,157
+  67 | word/media/image7.jpeg                   | xj_67.jpg    |     91,531
+  68 | word/media/image70.png                   | xj_68.png    |     32,863
+  69 | word/media/image8.png                    | xj_69.png    |     97,125
+  70 | word/media/image9.jpeg                   | xj_70.jpg    |    153,914

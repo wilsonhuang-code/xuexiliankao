@@ -1,0 +1,26 @@
+{
+  "stars": 0,
+  "hearts": 0,
+  "level": 1,
+  "points": 0,
+  "total_stars": 0,
+  "total_hearts_earned": 0,
+  "consecutive_days": 0,
+  "last_checkin_date": null,
+  "achievements": [],
+  "combo": 0,
+  "max_combo": 0,
+  "stats": {
+    "total_correct": 0,
+    "total_wrong": 0,
+    "math_correct": 0,
+    "math_wrong": 0,
+    "physics_correct": 0,
+    "physics_wrong": 0,
+    "english_correct": 0,
+    "english_wrong": 0,
+    "max_combo": 0
+  },
+  "daily_study_seconds": 1350,
+  "last_save_date": "2026-05-31"
+}

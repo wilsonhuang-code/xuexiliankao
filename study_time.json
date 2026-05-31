@@ -1,0 +1,21 @@
+{
+  "today": "2026-05-31",
+  "total_seconds": 43.524761,
+  "sessions": [
+    {
+      "page": "学习计划",
+      "seconds": 18,
+      "time": "09:12"
+    },
+    {
+      "page": "英语专项",
+      "seconds": 11,
+      "time": "09:13"
+    },
+    {
+      "page": "学习模式",
+      "seconds": 13,
+      "time": "12:48"
+    }
+  ]
+}

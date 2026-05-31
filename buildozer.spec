@@ -33,13 +33,13 @@ requirements = python3,kivy,json
 orientation = portrait
 
 # Android API 版本
-android.api = 31
+android.api = 34
 
 # 最低 Android 版本
 android.minapi = 21
 
 # 目标 Android 版本
-android.targetapi = 31
+android.targetapi = 34
 
 # 屏幕兼容性
 android.allow_backup = True
