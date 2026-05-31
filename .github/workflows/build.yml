@@ -25,7 +25,8 @@ jobs:
           libncurses5-dev libncursesw5-dev cmake \
           libffi-dev libssl-dev libltdl-dev \
           openjdk-17-jdk-headless \
-          gcc g++ make patch
+          gcc g++ make patch \
+          ccache
 
     - name: Install Python dependencies
       run: |
@@ -33,27 +34,32 @@ jobs:
         pip install buildozer "cython>=0.29,<0.30"
 
     - name: Set up Android SDK / NDK
+      id: setup-android
       uses: android-actions/setup-android@v3
 
     - name: Accept Android SDK licenses
       run: |
-        yes | sdkmanager --licenses > /dev/null 2>&1 || true
+        yes | ${{ steps.setup-android.outputs.sdk-root }}/cmdline-tools/latest/bin/sdkmanager --licenses --sdk_root=${{ steps.setup-android.outputs.sdk-root }} > /dev/null 2>&1 || true
 
     - name: Build APK with Buildozer
       run: |
-        export ANDROID_HOME=${ANDROID_SDK_ROOT}
-        export ANDROID_NDK_HOME=${ANDROID_SDK_ROOT}/ndk/$(ls ${ANDROID_SDK_ROOT}/ndk/ | head -1)
+        export ANDROID_HOME=${{ steps.setup-android.outputs.sdk-root }}
+        export ANDROID_SDK_ROOT=${{ steps.setup-android.outputs.sdk-root }}
+        export ANDROID_NDK_HOME=${{ steps.setup-android.outputs.sdk-root }}/ndk/$(ls ${{ steps.setup-android.outputs.sdk-root }}/ndk/ | head -1)
+        echo "ANDROID_HOME=$ANDROID_HOME"
+        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+        echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
+        ls -la $ANDROID_NDK_HOME/ 2>/dev/null || echo "NDK not found at default path"
         buildozer android debug 2>&1 | tee buildozer_log.txt
-      env:
-        ANDROID_SDK_ROOT: ${{ steps.setup-android.outputs.sdk-root }}
 
     - name: Check build result
       if: always()
       run: |
-        echo "=== Buildozer Log (last 100 lines) ==="
-        tail -100 buildozer_log.txt 2>/dev/null || echo "No log file"
+        echo "=== Buildozer Log (last 150 lines) ==="
+        tail -150 buildozer_log.txt 2>/dev/null || echo "No log file"
         echo ""
         echo "=== bin directory ==="
+        find . -name "*.apk" 2>/dev/null || echo "No apk files found anywhere"
         ls -la bin/ 2>/dev/null || echo "No bin directory"
 
     - name: Upload APK
@@ -61,7 +67,9 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: xuexiliankao-apk
-        path: bin/*.apk
+        path: |
+          bin/*.apk
+          **/*.apk
 
     - name: Upload build log on failure
       if: failure()
