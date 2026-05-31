@@ -1,6 +1,6 @@
 {
   "today": "2026-05-31",
-  "total_seconds": 43.524761,
+  "total_seconds": 90.97111899999999,
   "sessions": [
     {
       "page": "学习计划",
@@ -16,6 +16,11 @@
       "page": "学习模式",
       "seconds": 13,
       "time": "12:48"
+    },
+    {
+      "page": "学习计划",
+      "seconds": 47,
+      "time": "15:08"
     }
   ]
 }

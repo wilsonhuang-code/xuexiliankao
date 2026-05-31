@@ -38,48 +38,44 @@ jobs:
         pip install buildozer "cython>=0.29,<0.30"
 
     # Use v4 (latest) - it auto-accepts licenses and installs tools/platform-tools
-    - name: Setup Android SDK
+    - name: Setup Android SDK + NDK + Build-tools (ALL pre-installed)
       uses: android-actions/setup-android@v4
       with:
         accept-android-sdk-licenses: true
         log-accepted-android-sdk-licenses: false
 
-    - name: Install NDK, build-tools, platforms & accept ALL licenses
+    - name: Install ALL required packages & accept licenses
       run: |
-        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-        # Find sdkmanager (v4 puts it in versioned dir like cmdline-tools/16.0/bin/)
         SDKMANAGER=$(find $ANDROID_SDK_ROOT/cmdline-tools -name "sdkmanager" -type f 2>/dev/null | head -1)
-        if [ -z "$SDKMANAGER" ]; then
-          echo "ERROR: sdkmanager not found anywhere"
-          find $ANDROID_SDK_ROOT -type f -name "sdkmanager" 2>/dev/null || true
-          exit 1
-        fi
-        echo "Found sdkmanager at: $SDKMANAGER"
-        # === CRITICAL: Accept ALL licenses including build-tools 37 (buildozer needs this!) ===
-        echo "Accepting ALL Android SDK licenses..."
-        yes | $SDKMANAGER --licenses --sdk_root=$ANDROID_SDK_ROOT > /dev/null 2>&1 || true
-        # Do it multiple times to catch all license prompts
+        echo "SDKMANAGER=$SDKMANAGER"
+        # Accept licenses multiple times (catch all prompts)
         yes | $SDKMANAGER --licenses --sdk_root=$ANDROID_SDK_ROOT > /dev/null 2>&1 || true
         yes | $SDKMANAGER --licenses --sdk_root=$ANDROID_SDK_ROOT > /dev/null 2>&1 || true
-        # Pre-install the packages buildozer will need (including v37 which buildozer defaults to)
-        echo "Installing required packages..."
+        yes | $SDKMANAGER --licenses --sdk_root=$ANDROID_SDK_ROOT > /dev/null 2>&1 || true
+        # Install everything buildozer could possibly need
         yes | $SDKMANAGER \
           "ndk;26.2.11394342" \
           "build-tools;34.0.0" \
           "build-tools;37.0.0" \
           "platforms;android-34" \
           "platforms;android-21" \
+          "platforms;android-33" \
           --sdk_root=$ANDROID_SDK_ROOT 2>&1
-        # Accept licenses AGAIN after installing new packages
+        # Accept again after installing
         yes | $SDKMANAGER --licenses --sdk_root=$ANDROID_SDK_ROOT > /dev/null 2>&1 || true
         yes | $SDKMANAGER --licenses --sdk_root=$ANDROID_SDK_ROOT > /dev/null 2>&1 || true
-        echo "=== Verify installations ==="
-        echo "NDK:"
-        ls $ANDROID_SDK_ROOT/ndk/ 2>/dev/null || echo "NOT FOUND"
-        echo "Build-tools:"
-        ls $ANDROID_SDK_ROOT/build-tools/ 2>/dev/null || echo "NOT FOUND"
-        echo "Platforms:"
-        ls $ANDROID_SDK_ROOT/platforms/ 2>/dev/null || echo "NOT FOUND"
+        echo "=== Verify ==="
+        ls $ANDROID_SDK_ROOT/build-tools/ 2>/dev/null
+        ls $ANDROID_SDK_ROOT/ndk/ 2>/dev/null
+        test -f $ANDROID_SDK_ROOT/build-tools/37.0.0/aidl && echo "aidl v37 OK" || echo "aidl v37 MISSING"
+
+    - name: Configure buildozer.spec to use system SDK
+      run: |
+        echo "Configuring buildozer.spec with ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+        # Replace the placeholder/hardcoded path with actual SDK root
+        sed -i "s|android.sdk_path = .*|android.sdk_path = $ANDROID_SDK_ROOT|" buildozer.spec
+        echo "=== buildozer.spec relevant lines ==="
+        grep -n "sdk_path\|build_tools\|api\|minapi\|targetapi" buildozer.spec
 
     - name: Build APK with Buildozer
       timeout-minutes: 60
@@ -89,7 +85,6 @@ jobs:
         NDK_DIR=$(ls -d $ANDROID_SDK_ROOT/ndk/*/ 2>/dev/null | head -1 | tr -d '/')
         if [ -z "$NDK_DIR" ]; then
           echo "ERROR: No NDK directory found"
-          ls $ANDROID_SDK_ROOT/ndk/ 2>/dev/null || echo "ndk dir empty or missing"
           exit 1
         fi
         export ANDROID_NDK_HOME=$NDK_DIR
@@ -97,7 +92,7 @@ jobs:
         echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
         # Clean previous build
         rm -rf .buildozer/android/platform/build/
-        # Build
+        # Build with verbose output
         buildozer android debug 2>&1 | tee buildozer_log.txt
         BUILD_EXIT=${PIPESTATUS[0]}
         echo "Buildozer exit code: $BUILD_EXIT"
@@ -106,8 +101,8 @@ jobs:
     - name: Check build result
       if: always()
       run: |
-        echo "=== Buildozer Log (last 200 lines) ==="
-        tail -200 buildozer_log.txt 2>/dev/null || echo "No log file"
+        echo "=== Buildozer Log (last 300 lines) ==="
+        tail -300 buildozer_log.txt 2>/dev/null || echo "No log file"
         echo ""
         echo "=== Searching for APK files ==="
         find . -name "*.apk" 2>/dev/null || echo "No apk found"

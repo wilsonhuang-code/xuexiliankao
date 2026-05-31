@@ -22,7 +22,6 @@ version.code = 1
 
 # 应用要求
 requirements = python3,kivy,json
-
 # 图标（可选）
 #icon.filename = %(source.dir)s/icon.png
 
@@ -40,6 +39,12 @@ android.minapi = 21
 
 # 目标 Android 版本
 android.targetapi = 34
+
+# 使用系统SDK（避免buildozer重复下载）
+android.sdk_path = /home/runner/android-sdk
+
+# 强制使用 build-tools 34.0.0（避免 buildozer 默认下载 37.0.0 导致许可问题）
+android.build_tools_version = 34.0.0
 
 # 屏幕兼容性
 android.allow_backup = True
