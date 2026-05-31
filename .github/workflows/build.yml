@@ -37,8 +37,21 @@ jobs:
         pip install --upgrade pip setuptools wheel
         pip install buildozer "cython>=0.29,<0.30"
 
-    # REMOVED setup-android@v4 - Let Buildozer manage its own SDK (most reliable)
-    # Buildozer will download SDK/NDK to ~/.buildozer/android/platform/
+    # CRITICAL: Remove pre-installed Android SDK from GitHub Runner
+    # Buildozer detects /usr/local/lib/android/sdk/ and tries to use it,
+    # but the path structure is wrong (tools/bin vs cmdline-tools)
+    - name: Remove pre-installed Android SDK from Runner
+      run: |
+        echo "Removing pre-installed SDK to force Buildozer to manage its own..."
+        sudo rm -rf /usr/local/lib/android/sdk/
+        sudo rm -rf /usr/local/lib/android/cmdline-tools/
+        # Also unset any Android env vars
+        unset ANDROID_HOME || true
+        unset ANDROID_SDK_ROOT || true
+        echo "ANDROID_HOME=$ANDROID_HOME"
+        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+
+    # Buildozer will download its own SDK to ~/.buildozer/android/platform/
 
     - name: Build APK with Buildozer (let it manage SDK)
       timeout-minutes: 90
