@@ -1,49 +1,22 @@
 name: Build Android APK
 
 on:
-  push:
-    branches: [ main ]
+  push:    branches       main    
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    container: kivy/buildozer:latest
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Verify environment
-      run: |
-        echo "=== Python version ==="
-        python3 --version
-        echo "=== Buildozer version ==="
-        buildozer --version || echo "buildozer not in PATH"
-        echo "=== ANDROID_HOME ==="
-        echo "ANDROID_HOME=[$ANDROID_HOME]"
-        echo "=== Check for pre-installed SDK ==="
-        ls /usr/local/lib/android/ 2>/dev/null || echo "No pre-installed SDK"
-
-    - name: Build APK
-      timeout-minutes: 90
-      run: |
-        cd $GITHUB_WORKSPACE
-        # Clean any previous build
-        rm -rf .buildozer/android/platform/build/
-        # Build
-        buildozer android debug 2>&1 | tee buildozer_log.txt
-        exit ${PIPESTATUS[0]}
-
-    - name: Upload APK
-      if: success()
-      uses: actions/upload-artifact@v4
-      with:
-        name: xuexiliankao-apk
-        path: bin/*.apk
-
-    - name: Upload log
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: buildozer-log
-        path: buildozer_log.txt
+  build    runs-on ubuntu-latest     
+    
+                uses      
+          with         '3'            
+            
+                            pip3 install --upgrade pip setuptools wheel cython==0                  
+    
+                           cd $GITHUB_WORKSPACE       
+                
+        
+                          echo           ARTIFACT_NAME                         find               
+            
+                                                path                             
+  
+                           echo                             path               buildozer_log.txt
